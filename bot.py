@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-from config import interval, phrases_list, hello_list, i_am_here, who_is_bot, i_am_list, yes_answers
+from config import interval, phrases_list, hello_list, who_is_bot, i_am_list, yes_answers
 import telebot, random
 import tok
 import requests
@@ -8,7 +8,7 @@ import time
 
 bot = telebot.TeleBot(tok.tok)
 
-count = {}
+message_count = {}
 
 
 @bot.message_handler(commands=["conf"])
@@ -30,11 +30,6 @@ def hello_to_all(message):
 def acception(message):
     bot.send_message(message.chat.id, random.choice(yes_answers))
 
-@bot.message_handler(regexp=r'^[Мм]а[ий]ор,\sты\sтут')
-def say_i_here(message):
-    bot.send_message(message.chat.id, random.choice(i_am_here))
-
-
 @bot.message_handler(regexp=r'[мМ]айор\??')
 def say_i_am(message):
     bot.send_message(message.chat.id, random.choice(i_am_list))
@@ -47,16 +42,16 @@ def say_not_bot(message):
 
 @bot.message_handler(content_types=["text"])
 def repeat_all_messages(message):
-    global count
+    global message_count
     if len(message.text) > 0:
         try:
-            count[message.chat.id] +=1
+            message_count[message.chat.id] +=1
         except KeyError:
-            count[message.chat.id] = 0
-            count[message.chat.id] += 1
-        if count[message.chat.id] > interval:
+            message_count[message.chat.id] = 0
+            message_count[message.chat.id] += 1
+        if message_count[message.chat.id] > interval:
             bot.send_message(message.chat.id, random.choice(phrases_list))
-            count[message.chat.id] = 0
+            message_count[message.chat.id] = 0
 
 
 
