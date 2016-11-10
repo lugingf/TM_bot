@@ -11,6 +11,10 @@ http://httpbin.org/get?key1=value1&key2=value2&key2=value3
 print datetime.fromtimestamp(time.time())
 #> 2010-08-14 02:58:15.057613
 
+d = datetime.today()
+print d
+#> 2010-08-14 02:58:15.057538
+
 'Сдвинуть время'
 print d + timedelta(days=1, hours=1)
 #> 2010-08-15 03:58:15.057538
@@ -36,15 +40,43 @@ forecast.json()['list'][0]:
 '''
 
 import requests
+import time
 from datetime import datetime, timedelta
 from tok import weather_key
-#location = input('Локейшен-хуйешен: ') or 'Moscow'
+
 base_url = 'http://api.openweathermap.org/data/2.5/weather'  #запрос для текущей погоды
 forecast_url = 'http://api.openweathermap.org/data/2.5/forecast'  #прогноз на 5 дней с интервалом в 3 часа
 
 
-def forecast_weather_format(data, when_day=None, when_time=None):
-	pass
+def forecast_weather_format(forecast_data_list, when_day=None, when_time=None):
+	curr_time = datetime.today()
+	tomorrow_day = (curr_time + timedelta(days=1)).day
+	after_tomorrow_day = (curr_time + timedelta(days=2)).day
+	res = []
+	for i in range(len(forecast_data_list)-1):
+		weather_dt = datetime.fromtimestamp(forecast_data_list[i]['dt'])
+		if when_day == "tomorrow" and when_time == "morn":
+			if weather_dt.day == tomorrow_day and weather_dt.hour == 9:
+				temp_forecast = int(forecast_data_list[i]['main']['temp'])
+				weather_desc_forecast = forecast_data_list[i]['weather'][0]['description']
+				return (str(weather_dt), temp_forecast, weather_desc_forecast)
+		elif when_day == "tomorrow" and when_time == "day":
+			if weather_dt.day == tomorrow_day and weather_dt.hour == 15:
+				temp_forecast = int(forecast_data_list[i]['main']['temp'])
+				weather_desc_forecast = forecast_data_list[i]['weather'][0]['description']
+				return (str(weather_dt), temp_forecast, weather_desc_forecast)
+		elif when_day == "tomorrow" and when_time == "evn":
+			if weather_dt.day == tomorrow_day and weather_dt.hour == 21:
+				temp_forecast = int(forecast_data_list[i]['main']['temp'])
+				weather_desc_forecast = forecast_data_list[i]['weather'][0]['description']
+				return (str(weather_dt), temp_forecast, weather_desc_forecast)
+		elif when_day == "tomorrow" and when_time == "night":
+			if weather_dt.day == tomorrow_day and weather_dt.hour == 3:
+				temp_forecast = int(forecast_data_list[i]['main']['temp'])
+				weather_desc_forecast = forecast_data_list[i]['weather'][0]['description']
+				return (str(weather_dt), temp_forecast, weather_desc_forecast)
+
+		#TODO: дописать для "послезавтра" и средние
 
 def forecast_weather_req(city, when_day=None, when_time=None):
 	parameters = {'APPID': weather_key,
@@ -58,28 +90,25 @@ def forecast_weather_req(city, when_day=None, when_time=None):
 			current_weather = requests.get(base_url, parameters)
 			temp_now = int(current_weather.json()['main']['temp'])
 			loc_now = current_weather.json()['name']
-			weather_description = current_weather.json()['weather'][0]['description']
-			print (temp_now, loc_now, weather_description)
+			weather_desc_now = current_weather.json()['weather'][0]['description']
+			return (loc_now, temp_now, weather_desc_now)
 		else:
-			forecast = requests.get(forecast_url, parameters)
-			print(forecast.json()['city']['name'], forecast.json()['list'])
-		#return forecast_weather_format(forecast.json()['list'], when_day, when_time)
+			forecast_weather = requests.get(forecast_url, parameters)
+			#return (forecast_weather.json()['city']['name'], forecast_weather.json()['list'])
+			return (forecast_weather.json()['city']['name'],forecast_weather_format(forecast_weather.json()['list'], when_day or None, when_time or None))  #forecast_data = forecast.json()['list']  список, данные по погоде на 5 дней
 
-#forecast_data = forecast.json()['list']  # список, данные по погоде на 5 дней
 
 
 if __name__ == '__main__':
-	print(forecast_weather_req(None, None, None))
+	print(forecast_weather_req(None))
 	print(forecast_weather_req('Moscow'))
-	print(forecast_weather_req('Taganrog', 1, 1))
-	print(forecast_weather_req('Voronezh', 1))
+	print(forecast_weather_req('Taganrog', 'tomorrow', 'morn'))
+	print(forecast_weather_req('Санкт-Петербург', 'tomorrow', 'night'))
 	print(forecast_weather_req('Rostov'))
+
 	'''
 	print('Погода-хуегода в ', loc_now, temp_now, '\xB0С')
 	print(current_weather.json())
 	print(forecast.json()['list'][0])
 	for i in range(len(forecast.json()['list'])):
 		print('Температура на', datetime.fromtimestamp(forecast_data[i]['dt']), 'где-то', int(forecast_data[i]['main']['temp']), '\xB0С')  # \xB0С - символ градуса'''
-
-
-
