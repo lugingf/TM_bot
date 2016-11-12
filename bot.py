@@ -6,7 +6,7 @@ import requests
 import time
 import re
 
-from config import interval, phrases_list, hello_list, who_is_bot, yes_answers, i_am_list, what_are_you_talking
+from config import interval, phrases_list, hello_list, who_is_bot, yes_answers, i_am_list, what_are_you_talking, no_city_answ
 from weather import forecast_weather_req
 
 bot = telebot.TeleBot(tok.tok)
@@ -15,6 +15,8 @@ message_count = {}
 
 def flatten(tup):
 	result = []
+	if type(tup) == int:
+		return tup
 	for el in tup:
 		if hasattr(el, "__iter__") and type(el) != str:
 			result.extend(flatten(el))
@@ -24,13 +26,13 @@ def flatten(tup):
 
 @bot.message_handler(commands=["conf"])
 def handle_config_info(message):
-    C = 'Думаю что сказать где-то {} сообщений'.format(interval)
-    bot.send_message(message.chat.id, C)
-    try:
-        CC = 'Осталось {}'.format(interval-message_count[message.chat.id])
-        bot.send_message(message.chat.id, CC)
-    except KeyError:
-        pass
+	C = 'Думаю что сказать где-то {} сообщений'.format(interval)
+	bot.send_message(message.chat.id, C)
+	try:
+		CC = 'Осталось {}'.format(interval-message_count[message.chat.id])
+		bot.send_message(message.chat.id, CC)
+	except KeyError:
+		pass
 
 
 @bot.message_handler(regexp=r'([пП]ривет)|([зЗ]дарова?)|([дД]оброе\sутро)|([дД]обрый\sдень)')
@@ -53,7 +55,7 @@ def added_func_parsing(message):
 		if pog_trig == 'погод':
 			arg_words = message.text[6:].split()
 			try:
-				city = re.search(r'\sво?\s(?P<city>\w+)\??', message.text).group('city')
+				city = re.search(r'\sво?\s(?P<city>\w+\-?\w+)\??', message.text).group('city')
 				if 'завтра' in arg_words:
 					when_day = 'tomorrow'
 				elif 'послезавтра' in arg_words:
@@ -72,8 +74,11 @@ def added_func_parsing(message):
 					when_time = None
 				#res = ' '.join((when_time or ' ', when_day or ' ', city or ' '))
 				res = flatten(forecast_weather_req(city, when_day, when_time))
-				go_text = 'В {} будет примерно {}\xB0С, {}. Инфа от станции "{}"'.format(city, res[1], res[2], res[0])
-				bot.send_message(message.chat.id, go_text)
+				if res == 402:
+					bot.send_message(message.chat.id, random.choice(no_city_answ))
+				else:
+					go_text = 'В {} будет примерно {}\xB0С, {}. Инфа от станции "{}"'.format(city, res[1], res[2], res[0])
+					bot.send_message(message.chat.id, go_text)
 			except AttributeError:
 				bot.send_message(message.chat.id, 'Ты не сказал где')
 	except AttributeError:

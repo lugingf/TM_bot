@@ -74,31 +74,37 @@ def forecast_weather_req(city, when_day=None, when_time=None):
 				  'units': 'metric',
 				  'lang': 'ru'}
 	if city == None:
-		return 'No city'
+		return 402
 	else:
 		parameters.update({'q': city})
 		if when_day == when_time == None:
 			current_weather = requests.get(base_url, parameters)
-			temp_now = int(current_weather.json()['main']['temp'])
-			loc_now = current_weather.json()['name']
-			weather_desc_now = current_weather.json()['weather'][0]['description']
-			return (loc_now, temp_now, weather_desc_now)
+			if current_weather.status_code == 500:
+				return 402
+			else:
+				temp_now = int(current_weather.json()['main']['temp'])
+				loc_now = current_weather.json()['name']
+				weather_desc_now = current_weather.json()['weather'][0]['description']
+				return (loc_now, temp_now, weather_desc_now)
 		else:
 			forecast_weather = requests.get(forecast_url, parameters)
-			return (forecast_weather.json()['city']['name'],
-					forecast_weather_format(forecast_weather.json()['list'], when_day or None,
-											when_time or None))  # forecast_data = forecast.json()['list']  список, данные по погоде на 5 дней
+			if forecast_weather.status_code == 500:
+				return 402
+			else:
+				return (forecast_weather.json()['city']['name'],
+						forecast_weather_format(forecast_weather.json()['list'], when_day or None,
+												when_time or None))  # forecast_data = forecast.json()['list']  список, данные по погоде на 5 дней
 
 
 
 if __name__ == '__main__':
-	print(forecast_weather_req(None))
-	print(forecast_weather_req('Moscow'))
-	print(forecast_weather_req('Moscow', 'tomorrow'))
-	print(forecast_weather_req('Moscow', 'after_tomorrow'))
+	#print(forecast_weather_req(None))
+	print(forecast_weather_req('ggggggg'))
+	#print(forecast_weather_req('Moscow', 'tomorrow'))
+	#print(forecast_weather_req('Moscow', 'after_tomorrow'))
 	# print(forecast_weather_req('Moscow', 'after_tomorrow', 'morn'))
 	# print(forecast_weather_req('Moscow', 'after_tomorrow', 'day'))
-	# print(forecast_weather_req('Санкт-Петербург', 'tomorrow', 'night'))
+	print(forecast_weather_req('пппппппп', 'tomorrow', 'night'))
 	# print(forecast_weather_req('Владивосток', 'tomorrow', 'day'))
 	# print(forecast_weather_req('Владивосток', 'tomorrow', 'evn'))
 	# print(forecast_weather_req('Rostov'))
