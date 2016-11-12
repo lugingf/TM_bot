@@ -79,7 +79,7 @@ def forecast_weather_req(city, when_day=None, when_time=None):
 		parameters.update({'q': city})
 		if when_day == when_time == None:
 			current_weather = requests.get(base_url, parameters)
-			if current_weather.status_code == 500:
+			if current_weather.status_code in (500, 502):
 				return 402
 			else:
 				temp_now = int(current_weather.json()['main']['temp'])
