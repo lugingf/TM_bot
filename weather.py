@@ -88,7 +88,7 @@ def forecast_weather_req(city, when_day=None, when_time=None):
 				return (loc_now, temp_now, weather_desc_now)
 		else:
 			forecast_weather = requests.get(forecast_url, parameters)
-			if forecast_weather.status_code == 500:
+			if forecast_weather.status_code in (500, 502):
 				return 402
 			else:
 				return (forecast_weather.json()['city']['name'],
