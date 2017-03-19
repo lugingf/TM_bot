@@ -9,14 +9,14 @@ from tok import weather_key
 base_url = 'http://api.openweathermap.org/data/2.5/weather'  # запрос для текущей погоды
 forecast_url = 'http://api.openweathermap.org/data/2.5/forecast'  # прогноз на 5 дней с интервалом в 3 часа
 
-
+ # TODO:  Отвратительно, вынести все условия в отдельуню функцию и словарь
 def forecast_weather_format(forecast_data_list, when_day=None, when_time=None):
 	curr_time = datetime.today()
 	tomorrow_day = (curr_time + timedelta(days=1)).day
 	after_tomorrow_day = (curr_time + timedelta(days=2)).day
 	for i in range(len(forecast_data_list) - 1):
 		weather_dt = datetime.fromtimestamp(forecast_data_list[i]['dt'])
-		if when_day == "tomorrow" and when_time == "morn":  # TODO: 1) изменить структуру условий, объединив when_day и weather_dt; 2) слишком много одинакового кода
+		if when_day == "tomorrow" and when_time == "morn": 
 			if weather_dt.day == tomorrow_day and weather_dt.hour == 9:
 				temp_forecast = int(forecast_data_list[i]['main']['temp'])
 				weather_desc_forecast = forecast_data_list[i]['weather'][0]['description']
