@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-interval = 20
+interval = 50
 phrases_list=[
 "Я прослежу, чтобы об этом узнал кто нужно",
 "Аккуратней, мальчики",

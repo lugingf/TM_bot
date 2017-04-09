@@ -5,8 +5,8 @@ import tok
 import requests
 import time
 import re
-from datetime import datetime
 
+from datetime import datetime
 from config import interval, phrases_list, hello_list, who_is_bot, yes_answers, i_am_list, what_are_you_talking, no_city_answ
 from weather import forecast_weather_req
 
@@ -39,6 +39,7 @@ def handle_config_info(message):
 @bot.message_handler(regexp=r'([пП]ривет)|([зЗ]дарова?)|([дД]оброе\sутро)|([дД]обрый\sдень)')
 def hello_to_all(message):
 	bot.send_message(message.chat.id, random.choice(hello_list))
+	print('Hello was sent to ', message.chat.id, datetime.fromtimestamp(message.date), message.chat.username, message.chat.first_name or None, message.chat.last_name or None)
 
 @bot.message_handler(regexp=r'да,?\s[Мм]а[ий]ор')
 def acception(message):
@@ -47,46 +48,42 @@ def acception(message):
 
 @bot.message_handler(regexp=r'^[мМ]айор\??$')
 def i_am_here(message):
-	print('Personal: ', message.chat.id, datetime.fromtimestamp(message.date), message.chat.username,
-					  message.chat.first_name or None, message.chat.last_name or None)
-	print('Chats: ', datetime.fromtimestamp(message.date), message.chat.title, message.from_user.id, message.from_user.last_name or None,
-		  message.from_user.username or None, message.from_user.first_name or None)
-	#print('Overall', message)
 	bot.send_message(message.chat.id, random.choice(i_am_list))
 
 @bot.message_handler(regexp=r'^[мМ]айор,?')
 def added_func_parsing(message):
-	#pog_trig = re.search(r'[пП][оО][гГ][оО][дД]', message.text)
-	if re.search(r'[пП][оО][гГ][оО][дД]', message.text):
-		arg_words = message.text[6:].split()
-		try:
-			city = re.search(r'\sво?\s(?P<city>\w+\-?\w+)\??', message.text).group('city')
-			if 'завтра' in arg_words:
-				when_day = 'tomorrow'
-			elif 'послезавтра' in arg_words:
-				when_day = 'after_tomorrow'
-			else:
-				when_day = None
-			if 'утро' in arg_words or 'утра' in arg_words or 'утром' in arg_words:
-				when_time = 'morn'
-			elif 'день' in arg_words or 'днем' in arg_words:
-				when_time = 'day'
-			elif 'вечер' in arg_words or 'вечера' in arg_words:
-				when_time = 'evn'
-			elif 'ночь' in arg_words or 'ночью' in arg_words or 'ноч' in arg_words:
-				when_time = 'night'
-			else:
-				when_time = None
-			#res = ' '.join((when_time or ' ', when_day or ' ', city or ' '))
-			res = flatten(forecast_weather_req(city, when_day, when_time))
-			if res == 402:
-				bot.send_message(message.chat.id, random.choice(no_city_answ))
-			else:
-				go_text = 'В {} будет примерно {}\xB0С, {}. Инфа от станции "{}"'.format(city, res[1], res[2], res[0])
-				bot.send_message(message.chat.id, go_text)
-		except AttributeError:
-			bot.send_message(message.chat.id, 'Ты не сказал где')
-	else:
+	try:
+		pog_trig = re.search(r'[пП][оО][гГ][оО][дД]', message.text).group().lower()
+		if pog_trig == 'погод':
+			arg_words = message.text[6:].split()
+			try:
+				city = re.search(r'\sво?\s(?P<city>\w+\-?\w+)\??', message.text).group('city')
+				if 'завтра' in arg_words:
+					when_day = 'tomorrow'
+				elif 'послезавтра' in arg_words:
+					when_day = 'after_tomorrow'
+				else:
+					when_day = None
+				if 'утро' in arg_words or 'утра' in arg_words or 'утром' in arg_words:
+					when_time = 'morn'
+				elif 'день' in arg_words or 'днем' in arg_words:
+					when_time = 'day'
+				elif 'вечер' in arg_words or 'вечера' in arg_words:
+					when_time = 'evn'
+				elif 'ночь' in arg_words or 'ночью' in arg_words or 'ноч' in arg_words:
+					when_time = 'night'
+				else:
+					when_time = None
+				#res = ' '.join((when_time or ' ', when_day or ' ', city or ' '))
+				res = flatten(forecast_weather_req(city, when_day, when_time))
+				if res == 402:
+					bot.send_message(message.chat.id, random.choice(no_city_answ))
+				else:
+					go_text = 'В {} будет примерно {}\xB0С, {}. Инфа от станции "{}"'.format(city, res[1], res[2], res[0])
+					bot.send_message(message.chat.id, go_text)
+			except AttributeError:
+				bot.send_message(message.chat.id, 'Ты не сказал где')
+	except AttributeError:
 		bot.send_message(message.chat.id, random.choice(what_are_you_talking))
 
 
@@ -104,17 +101,22 @@ def repeat_all_messages(message):
 		except KeyError:
 			message_count[message.chat.id] = 0
 			message_count[message.chat.id] += 1
-		if message_count[message.chat.id] > interval:
+		if message_count[message.chat.id] > interval*2 :
+			message_count[message.chat.id] = 0
 			time.sleep(3)
 			bot.send_message(message.chat.id, random.choice(phrases_list))
+		elif message_count[message.chat.id] > interval :
 			message_count[message.chat.id] = 0
-
+			time.sleep(3)
+			bot.send_message(message.chat.id, random.choice(phrases_list))
+			print('Message was sent to ', message.chat.id, message.chat.username, message.chat.first_name or None, message.chat.last_name or None)
 
 
 if __name__ == '__main__':
 	while True:
 		try:
 			bot.polling(none_stop=True)
+			time.sleep(10)
 		except requests.exceptions.ConnectionError as e:
 			print(str(e))
 			print("sleep 25sec")
@@ -122,4 +124,4 @@ if __name__ == '__main__':
 		except requests.exceptions.ReadTimeout as t:
 			print(str(t))
 			print("sleep 30sec")
-			time.sleep(30)
+		time.sleep(30)
